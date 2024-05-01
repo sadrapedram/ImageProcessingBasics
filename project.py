@@ -124,6 +124,39 @@ class imageProcessing:
         edges = (255/edges.max())*edges
         return edges
     
+
+    def subtract_images(self,image1,image2):
+        dsize = (1024,1024)
+
+        pil_image = Image.open(image1)
+        # Convert PIL image to NumPy array
+        first_image = np.array(pil_image)
+        first_image_resize = cv.resize(src=first_image,dsize=dsize)
+
+
+        pil2_image = Image.open(image2)
+        # Convert PIL image to NumPy array
+        second_image = np.array(pil2_image)
+        second_image_resize = cv.resize(src=second_image,dsize=dsize)
+
+        subtract = cv.subtract(first_image_resize,second_image_resize)
+        return subtract
+    
+
+    def sum_images(self,image1,image2):
+        dsize = (1024,1024)
+        pil_image = Image.open(image1)
+        # Convert PIL image to NumPy array
+        first_image = np.array(pil_image)
+        first_image_resize = cv.resize(src=first_image,dsize=dsize)
+        pil2_image = Image.open(image2)
+        # Convert PIL image to NumPy array
+        second_image = np.array(pil2_image)
+        second_image_resize = cv.resize(src=second_image,dsize=dsize)
+        sum = cv.add(first_image_resize,second_image_resize)
+        return sum
+    
+
     def _gaussian2d(self, sigma, fsize): #fsize(3,5)
         m = fsize[0]
         n = fsize[1]
@@ -182,6 +215,12 @@ if 'image1' not in st.session_state:
 
 if 'image2' not in st.session_state:
     st.session_state['image2'] = None
+
+if 'sum_image' not in st.session_state:
+    st.session_state['sum_image'] = None
+
+if 'subtract_image' not in st.session_state:
+    st.session_state['subtract_image'] = None
 
 if 'image_result' not in st.session_state:
     st.session_state['image_result'] = None
@@ -261,40 +300,45 @@ with st.sidebar:
         st.session_state['image2'] =  st.file_uploader(label="upload second image",type=['png','jpg','jpeg'])
         st.session_state['process_type'] = st.radio(label="choose your desired algorithm on the image:",
                 options=[
-                        'subtract two image',
-                        'sum images'
+                        'subtract two images',
+                        'sum of two images'
                         ])
         
     # single image processes
-    if st.button('process the image') and st.session_state['image_shift_to_two']==1:
-        if st.session_state['process_type'] == 'image gray':
-            st.session_state['image_result'] = st.session_state.class_instance.gray_images(st.session_state['image'])
-        elif st.session_state['process_type'] == 'gray histogram':
-            st.session_state['fig'] = st.session_state.class_instance.gray_histogram(st.session_state['image'])
-        elif st.session_state['process_type'] == 'color histogram':
-            st.session_state['color_fig'] = st.session_state.class_instance.color_histogram(st.session_state['image'])
-        elif st.session_state['process_type'] == 'Blurring':
-            st.session_state['blur_image'] = st.session_state.class_instance.mean_filter(st.session_state['image'],pixel=st.session_state['pixel'])
-        elif st.session_state['process_type'] == 'edges of image':
-            denoised_image = st.session_state.class_instance.bilateral_filter(st.session_state['image'])
-            st.session_state['edge_image_custom_sobel']  = st.session_state.class_instance.custum_compute_sobel(denoised_image)                                   
-            st.session_state['edge_image_canny']  = st.session_state.class_instance.open_cv_canny(st.session_state['image'])                                   
-        elif st.session_state['process_type'] == 'DoG':
-            first_gaussian  = st.session_state.class_instance.apply_gaussian_filter(image=st.session_state['image'],sigma=st.session_state['first_sigma'],fsize=(st.session_state['first_fsize'],st.session_state['first_fsize']))   
-            second_gaussian = st.session_state.class_instance.apply_gaussian_filter(image=st.session_state['image'],sigma=st.session_state['second_sigma'],fsize=(st.session_state['second_fsize'],st.session_state['second_fsize'])) 
-            st.session_state['difference_of_gaussian']= cv.subtract(first_gaussian, second_gaussian)
+    if st.button('process'):
+        if st.session_state['image_shift_to_two']==1:
+            if st.session_state['process_type'] == 'image gray':
+                st.session_state['image_result'] = st.session_state.class_instance.gray_images(st.session_state['image'])
+            elif st.session_state['process_type'] == 'gray histogram':
+                st.session_state['fig'] = st.session_state.class_instance.gray_histogram(st.session_state['image'])
+            elif st.session_state['process_type'] == 'color histogram':
+                st.session_state['color_fig'] = st.session_state.class_instance.color_histogram(st.session_state['image'])
+            elif st.session_state['process_type'] == 'Blurring':
+                st.session_state['blur_image'] = st.session_state.class_instance.mean_filter(st.session_state['image'],pixel=st.session_state['pixel'])
+            elif st.session_state['process_type'] == 'edges of image':
+                denoised_image = st.session_state.class_instance.bilateral_filter(st.session_state['image'])
+                st.session_state['edge_image_custom_sobel']  = st.session_state.class_instance.custum_compute_sobel(denoised_image)                                   
+                st.session_state['edge_image_canny']  = st.session_state.class_instance.open_cv_canny(st.session_state['image'])                                   
+            elif st.session_state['process_type'] == 'DoG':
+                first_gaussian  = st.session_state.class_instance.apply_gaussian_filter(image=st.session_state['image'],sigma=st.session_state['first_sigma'],fsize=(st.session_state['first_fsize'],st.session_state['first_fsize']))   
+                second_gaussian = st.session_state.class_instance.apply_gaussian_filter(image=st.session_state['image'],sigma=st.session_state['second_sigma'],fsize=(st.session_state['second_fsize'],st.session_state['second_fsize'])) 
+                st.session_state['difference_of_gaussian']= cv.subtract(first_gaussian, second_gaussian)
+        if st.session_state['image_shift_to_two']==2:
+            if st.session_state['process_type'] == 'subtract two images':
+                st.session_state['subtracted_image'] = st.session_state.class_instance.subtract_images(st.session_state['image1'],st.session_state['image2'])
+            if st.session_state['process_type'] == 'sum of two images':
+                st.session_state['sum_image'] = st.session_state.class_instance.sum_images(st.session_state['image1'],st.session_state['image2'])
 
-    if st.button('process the image') and st.session_state['image_shift_to_two']==2:
-        if st.session_state['process_type'] == 'subtract two image':
-            st.session_state['subtracted_image'] = cv.subtract(st.session_state['image1'],st.session_state['image2'])
 col1, col2 = st.columns(2)
 
 
 with col1:
     if st.session_state['image_shift_to_two']==2:
-        if st.session_state['image'] and st.session_state['image2'] is not None:
-            st.image(st.session_state['image'])
+        if st.session_state['image1'] is not None:
+            st.image(st.session_state['image1'])
+        if st.session_state['image2'] is not None:
             st.image(st.session_state['image2'])
+
     elif st.session_state['image_shift_to_two']==1:
         if st.session_state['image'] is not None:
             st.image(st.session_state['image'])
@@ -314,9 +358,10 @@ with col2:
             st.image(st.session_state['edge_image_custom_sobel'],'custom_sobel')
         if st.session_state['process_type'] == 'DoG':
             st.image(st.session_state['difference_of_gaussian'],'difference of gaussian')
-        if st.session_state['process_type'] == 'subtract two image':
-            
-
+        if st.session_state['process_type'] == 'subtract two images':
+            st.image(st.session_state['subtracted_image'],'subtracted')
+        if st.session_state['process_type'] == 'sum of two images':
+            st.image(st.session_state['sum_image'],'sum of two images')
 
 
 
