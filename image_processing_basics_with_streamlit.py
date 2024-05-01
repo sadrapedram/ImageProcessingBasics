@@ -54,11 +54,12 @@ class filterClass:
         plt.show()
 
 
+
     def median_blur(self,image):
         pil_image = Image.open(image)
         np_image = np.array(pil_image)
         gray_image = cv.cvtColor(np_image, cv.COLOR_RGB2GRAY)
-        filtered_image = cv.medianBlur(gray_image, ksize=21)
+        filtered_image = cv.medianBlur(gray_image, ksize=15)
         return filtered_image
     
 
