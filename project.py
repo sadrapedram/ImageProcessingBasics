@@ -220,7 +220,7 @@ if 'sum_image' not in st.session_state:
     st.session_state['sum_image'] = None
 
 if 'subtract_image' not in st.session_state:
-    st.session_state['subtract_image'] = None
+    st.session_state['subtracted_image'] = None
 
 if 'image_result' not in st.session_state:
     st.session_state['image_result'] = None
@@ -345,23 +345,44 @@ with col1:
 
 with col2:
     if st.session_state['process_type'] is not None:
-        if st.session_state['process_type'] == 'image gray':
+        if st.session_state['image_result'] is not None:
             st.image(st.session_state['image_result'],st.session_state['process_type'])
-        if st.session_state['process_type'] == 'gray histogram':
+            st.session_state['image_result'] = None
+
+
+        if st.session_state['fig'] is not None:
             st.pyplot(st.session_state['fig'])
-        if st.session_state['process_type'] == 'color histogram':
+            st.session_state['fig'] = None
+
+
+        if st.session_state['color_fig'] is not None:
             st.pyplot(st.session_state['color_fig'])
-        if st.session_state['process_type'] == 'Blurring':
+            st.session_state['color_fig'] = None
+
+
+        if st.session_state['blur_image'] is not None:
             st.image(st.session_state['blur_image'],st.session_state['process_type'])
-        if st.session_state['process_type'] == 'edges of image':
+            st.session_state['blur_image'] = None
+
+            
+        if st.session_state['edge_image_custom_sobel'] is not None:
             st.image(st.session_state['edge_image_canny'],'canny', clamp=True)
             st.image(st.session_state['edge_image_custom_sobel'],'custom_sobel')
-        if st.session_state['process_type'] == 'DoG':
+            st.session_state['edge_image_canny'] = None
+            st.session_state['edge_image_custom_sobel'] = None
+
+
+        if st.session_state['difference_of_gaussian'] is not None:
             st.image(st.session_state['difference_of_gaussian'],'difference of gaussian')
-        if st.session_state['process_type'] == 'subtract two images':
+            st.session_state['difference_of_gaussian'] = None
+
+        if st.session_state['subtracted_image'] is not None:
             st.image(st.session_state['subtracted_image'],'subtracted')
-        if st.session_state['process_type'] == 'sum of two images':
+            st.session_state['subtracted_image'] = None
+
+        if st.session_state['sum_image'] is not None:
             st.image(st.session_state['sum_image'],'sum of two images')
+            st.session_state['sum_image'] = None
 
 
 
