@@ -200,6 +200,12 @@ class imageProcessing:
         
         return filtered_image.astype(np.uint8)
     
+    def flip_image(self, image, flip_axiom):
+        pil_image = Image.open(image)
+        # Convert PIL image to NumPy array
+        np_image = np.array(pil_image)
+        image_flip = cv.flip(src=np_image,flipCode=flip_axiom)
+        return image_flip
 
 
 # Streamlit session_state parameters
@@ -221,6 +227,9 @@ if 'sum_image' not in st.session_state:
 
 if 'subtract_image' not in st.session_state:
     st.session_state['subtracted_image'] = None
+
+if 'flip_image' not in st.session_state:
+    st.session_state['flip_image'] = None
 
 if 'image_result' not in st.session_state:
     st.session_state['image_result'] = None
@@ -261,6 +270,9 @@ if 'second_sigma' not in st.session_state:
     st.session_state['second_sigma'] = None
 if 'second_fsize' not in st.session_state:
     st.session_state['second_fsize'] = None
+    #image flip parameter
+if 'flip_axiom' not in st.session_state:
+    st.session_state['flip_axiom'] = None
 # side bar of the application
 
 with st.sidebar:
@@ -291,7 +303,11 @@ with st.sidebar:
             st.session_state['first_fsize'] = st.slider(label='first fsize',min_value=3,max_value=35)
             st.session_state['second_sigma'] = st.slider(label='second sigma',min_value=0.0,max_value=3.0)
             st.session_state['second_fsize'] = st.slider(label='second fsize',min_value=3,max_value=35)
-
+        if st.session_state['process_type'] == 'Flipping':
+            st.session_state['flip_axiom'] = st.radio(label="choose your desired fliping type:",
+                                                      options=['vertical',
+                                                               'horizontal',
+                                                               'vertical and horizontal'])
     elif st.session_state['image_shift_to_two']==2:
         if st.button("click to get one uploader"):
             st.session_state['image_shift_to_two']=1
@@ -323,6 +339,14 @@ with st.sidebar:
                 first_gaussian  = st.session_state.class_instance.apply_gaussian_filter(image=st.session_state['image'],sigma=st.session_state['first_sigma'],fsize=(st.session_state['first_fsize'],st.session_state['first_fsize']))   
                 second_gaussian = st.session_state.class_instance.apply_gaussian_filter(image=st.session_state['image'],sigma=st.session_state['second_sigma'],fsize=(st.session_state['second_fsize'],st.session_state['second_fsize'])) 
                 st.session_state['difference_of_gaussian']= cv.subtract(first_gaussian, second_gaussian)
+            elif st.session_state['process_type'] == 'Flipping':
+                if st.session_state['flip_axiom'] == 'vertical':
+                    st.session_state['flip_image'] = st.session_state.class_instance.flip_image(st.session_state['image'],1)
+                elif st.session_state['flip_axiom'] == 'horizontal':
+                    st.session_state['flip_image'] = st.session_state.class_instance.flip_image(st.session_state['image'],0)
+                elif st.session_state['flip_axiom'] == 'vertical and horizontal':
+                    st.session_state['flip_image'] = st.session_state.class_instance.flip_image(st.session_state['image'],-1)
+                    
         if st.session_state['image_shift_to_two']==2:
             if st.session_state['process_type'] == 'subtract two images':
                 st.session_state['subtracted_image'] = st.session_state.class_instance.subtract_images(st.session_state['image1'],st.session_state['image2'])
@@ -359,6 +383,9 @@ with col2:
             st.pyplot(st.session_state['color_fig'])
             st.session_state['color_fig'] = None
 
+        if st.session_state['flip_image'] is not None:
+            st.image(st.session_state['flip_image'])
+            st.session_state['flip_image'] = None
 
         if st.session_state['blur_image'] is not None:
             st.image(st.session_state['blur_image'],st.session_state['process_type'])
