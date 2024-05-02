@@ -207,7 +207,15 @@ class imageProcessing:
         image_flip = cv.flip(src=np_image,flipCode=flip_axiom)
         return image_flip
 
+    def resize_image(self, image, w_h):
+        pil_image = Image.open(image)
+        # Convert PIL image to NumPy array
+        np_image = np.array(pil_image)
+        resize_image = cv.resize(np_image,w_h)
+        return resize_image
+    
 
+    
 # Streamlit session_state parameters
 #instance of the class
 if "my_instance" not in st.session_state:
@@ -261,6 +269,9 @@ if 'edge_image_canny' not in st.session_state:
 if 'difference_of_gaussian' not in st.session_state:
     st.session_state['difference_of_gaussian'] = None
 
+if 'resize_image' not in st.session_state:
+    st.session_state['resize_image'] = None
+
     #DoG params
 if 'first_sigma' not in st.session_state:
     st.session_state['first_sigma'] = None
@@ -273,6 +284,15 @@ if 'second_fsize' not in st.session_state:
     #image flip parameter
 if 'flip_axiom' not in st.session_state:
     st.session_state['flip_axiom'] = None
+
+    #resize image tuple
+if 'resize_h_w' not in st.session_state:
+    st.session_state['resize_h_w'] = [1024,1024]
+
+
+
+
+
 # side bar of the application
 
 with st.sidebar:
@@ -308,6 +328,11 @@ with st.sidebar:
                                                       options=['vertical',
                                                                'horizontal',
                                                                'vertical and horizontal'])
+        if st.session_state['process_type'] == 'Resizing':
+            st.session_state['resize_h_w'][0] = st.number_input("height", value=st.session_state['resize_h_w'][0], placeholder="Type a number...")
+            st.session_state['resize_h_w'][1] = st.number_input("width", value=st.session_state['resize_h_w'][1], placeholder="Type a number...")
+
+
     elif st.session_state['image_shift_to_two']==2:
         if st.button("click to get one uploader"):
             st.session_state['image_shift_to_two']=1
@@ -320,25 +345,33 @@ with st.sidebar:
                         'sum of two images'
                         ])
         
+
+
     # single image processes
     if st.button('process'):
         if st.session_state['image_shift_to_two']==1:
             if st.session_state['process_type'] == 'image gray':
                 st.session_state['image_result'] = st.session_state.class_instance.gray_images(st.session_state['image'])
+
             elif st.session_state['process_type'] == 'gray histogram':
                 st.session_state['fig'] = st.session_state.class_instance.gray_histogram(st.session_state['image'])
+
             elif st.session_state['process_type'] == 'color histogram':
                 st.session_state['color_fig'] = st.session_state.class_instance.color_histogram(st.session_state['image'])
+
             elif st.session_state['process_type'] == 'Blurring':
                 st.session_state['blur_image'] = st.session_state.class_instance.mean_filter(st.session_state['image'],pixel=st.session_state['pixel'])
+
             elif st.session_state['process_type'] == 'edges of image':
                 denoised_image = st.session_state.class_instance.bilateral_filter(st.session_state['image'])
                 st.session_state['edge_image_custom_sobel']  = st.session_state.class_instance.custum_compute_sobel(denoised_image)                                   
-                st.session_state['edge_image_canny']  = st.session_state.class_instance.open_cv_canny(st.session_state['image'])                                   
+                st.session_state['edge_image_canny']  = st.session_state.class_instance.open_cv_canny(st.session_state['image'])     
+
             elif st.session_state['process_type'] == 'DoG':
                 first_gaussian  = st.session_state.class_instance.apply_gaussian_filter(image=st.session_state['image'],sigma=st.session_state['first_sigma'],fsize=(st.session_state['first_fsize'],st.session_state['first_fsize']))   
                 second_gaussian = st.session_state.class_instance.apply_gaussian_filter(image=st.session_state['image'],sigma=st.session_state['second_sigma'],fsize=(st.session_state['second_fsize'],st.session_state['second_fsize'])) 
                 st.session_state['difference_of_gaussian']= cv.subtract(first_gaussian, second_gaussian)
+
             elif st.session_state['process_type'] == 'Flipping':
                 if st.session_state['flip_axiom'] == 'vertical':
                     st.session_state['flip_image'] = st.session_state.class_instance.flip_image(st.session_state['image'],1)
@@ -346,7 +379,12 @@ with st.sidebar:
                     st.session_state['flip_image'] = st.session_state.class_instance.flip_image(st.session_state['image'],0)
                 elif st.session_state['flip_axiom'] == 'vertical and horizontal':
                     st.session_state['flip_image'] = st.session_state.class_instance.flip_image(st.session_state['image'],-1)
-                    
+
+            elif st.session_state['process_type'] == 'Resizing':
+                 st.session_state['resize_image'] = st.session_state.class_instance.resize_image(st.session_state['image'],st.session_state['resize_h_w'])
+
+
+
         if st.session_state['image_shift_to_two']==2:
             if st.session_state['process_type'] == 'subtract two images':
                 st.session_state['subtracted_image'] = st.session_state.class_instance.subtract_images(st.session_state['image1'],st.session_state['image2'])
@@ -411,6 +449,9 @@ with col2:
             st.image(st.session_state['sum_image'],'sum of two images')
             st.session_state['sum_image'] = None
 
+        if st.session_state['resize_image'] is not None:
+            st.image(st.session_state['resize_image'],'resize image')
+            st.session_state['resize_image'] = None
 
 
 
